@@ -474,4 +474,8 @@ contract CErc20Delegator is CTokenInterface, CErc20Interface, CDelegatorInterfac
             default { return(free_mem_ptr, returndatasize()) }
         }
     }
+
+    receive() external payable {
+        require(msg.value == 0,"CErc20Delegator:receive: cannot send value to receive");
+    }
 }

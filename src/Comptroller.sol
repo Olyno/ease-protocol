@@ -318,9 +318,9 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
             require(msg.sender == cToken, "sender must be cToken");
 
             // attempt to add borrower to the market
-            Error err = addToMarketInternal(CToken(msg.sender), borrower);
-            if (err != Error.NO_ERROR) {
-                return uint(err);
+            Error marketErr = addToMarketInternal(CToken(msg.sender), borrower);
+            if (marketErr != Error.NO_ERROR) {
+                return uint(marketErr);
             }
 
             // it should be impossible to break the important invariant
