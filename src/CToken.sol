@@ -28,7 +28,8 @@ abstract contract CToken is CTokenInterface, ExponentialNoError, TokenErrorRepor
                         uint initialExchangeRateMantissa_,
                         string memory name_,
                         string memory symbol_,
-                        uint8 decimals_) public {
+                        uint8 decimals_,
+                        bytes32 pythFeedID_) public {
         require(msg.sender == admin, "only admin may initialize the market");
         require(accrualBlockNumber == 0 && borrowIndex == 0, "market may only be initialized once");
 
@@ -51,6 +52,8 @@ abstract contract CToken is CTokenInterface, ExponentialNoError, TokenErrorRepor
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
+
+        pythFeedID = pythFeedID_;
 
         // The counter starts true to prevent changing it from zero to non-zero (i.e. smaller cost/refund)
         _notEntered = true;

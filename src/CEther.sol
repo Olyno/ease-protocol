@@ -25,11 +25,12 @@ contract CEther is CToken {
                 string memory name_,
                 string memory symbol_,
                 uint8 decimals_,
-                address payable admin_) {
+                address payable admin_,
+                bytes32 pythId) {
         // Creator of the contract is admin during initialization
         admin = payable(msg.sender);
 
-        initialize(comptroller_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
+        initialize(comptroller_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, pythId);
 
         // Set the proper admin now that initialization is done
         admin = admin_;

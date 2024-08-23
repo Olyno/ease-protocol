@@ -3,42 +3,24 @@ pragma solidity ^0.8.10;
 
 import "./PriceOracle.sol";
 import "./CErc20.sol";
+import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
+import "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
 contract SimplePriceOracle is PriceOracle {
-    mapping(address => uint) prices;
-    event PricePosted(address asset, uint previousPriceMantissa, uint requestedPriceMantissa, uint newPriceMantissa);
+    IPyth immutable pyth;
 
-    function _getUnderlyingAddress(CToken cToken) private view returns (address) {
-        address asset;
-        if (compareStrings(cToken.symbol(), "cETH")) {
-            asset = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-        } else {
-            asset = address(CErc20(address(cToken)).underlying());
-        }
-        return asset;
+    constructor(IPyth pyth_) {
+        pyth = pyth_;
     }
 
-    function getUnderlyingPrice(CToken cToken) public override view returns (uint) {
-        return prices[_getUnderlyingAddress(cToken)];
+    function _getPrice(CToken cToken) internal view returns (PythStructs.Price memory) {
+        return pyth.getPriceNoOlderThan(cToken.pythFeedID(), 24 * 60 * 60);
     }
 
-    function setUnderlyingPrice(CToken cToken, uint underlyingPriceMantissa) public {
-        address asset = _getUnderlyingAddress(cToken);
-        emit PricePosted(asset, prices[asset], underlyingPriceMantissa, underlyingPriceMantissa);
-        prices[asset] = underlyingPriceMantissa;
-    }
-
-    function setDirectPrice(address asset, uint price) public {
-        emit PricePosted(asset, prices[asset], price, price);
-        prices[asset] = price;
-    }
-
-    // v1 price oracle interface for use as backing of proxy
-    function assetPrices(address asset) external view returns (uint) {
-        return prices[asset];
-    }
-
-    function compareStrings(string memory a, string memory b) internal pure returns (bool) {
-        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    function getUnderlyingPrice(CToken cToken) public view override returns (uint256) {
+        PythStructs.Price memory price = _getPrice(cToken);
+        require(price.expo >= -18, "price too precise");
+        return
+            (uint256(uint64(price.price)) * (10 ** uint256(uint32(36 - int32(uint32(cToken.decimals())) + price.expo))));
     }
 }
