@@ -1,1 +1,3 @@
 forge-std/=lib/forge-std/src/
+@pythnetwork/express-relay-sdk-solidity/=lib/pyth-crosschain/express-relay/sdk/solidity/
+@pythnetwork/pyth-sdk-solidity/=lib/pyth-crosschain/target_chains/ethereum/sdk/solidity/
