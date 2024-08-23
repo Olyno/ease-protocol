@@ -7,13 +7,14 @@ import "./ErrorReporter.sol";
 import "./EIP20Interface.sol";
 import "./InterestRateModel.sol";
 import "./ExponentialNoError.sol";
+import "./permit/EIP2612Permit.sol";
 
 /**
  * @title Compound's CToken Contract
  * @notice Abstract base for CTokens
  * @author Compound
  */
-abstract contract CToken is CTokenInterface, ExponentialNoError, TokenErrorReporter {
+abstract contract CToken is CTokenInterface, ExponentialNoError, TokenErrorReporter, EIP2612Permit {
     /**
      * @notice Initialize the money market
      * @param comptroller_ The address of the Comptroller
@@ -145,9 +146,19 @@ abstract contract CToken is CTokenInterface, ExponentialNoError, TokenErrorRepor
      */
     function approve(address spender, uint256 amount) override external returns (bool) {
         address src = msg.sender;
-        transferAllowances[src][spender] = amount;
-        emit Approval(src, spender, amount);
+        _approve(src, spender, amount);
         return true;
+    }
+
+    /**
+     * @notice Internal function to set allowance from `owner` to `spender` for `amount`
+     * @param owner The address of the owner of the tokens
+     * @param spender The address of the spender who will be allowed to spend tokens
+     * @param value The number of tokens to approve
+     */
+    function _approve(address owner, address spender, uint256 value) internal override {
+        transferAllowances[owner][spender] = value;
+        emit Approval(owner, spender, value);
     }
 
     /**
